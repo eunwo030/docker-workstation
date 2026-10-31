@@ -15,10 +15,11 @@ WSL(Ubuntu) 터미널에서 Docker와 Git/GitHub로 개발 환경을 구축하�
 ```
 docker-workstation/
 ├── README.md
+├── LICENSE
+├── .gitignore
 ├── Dockerfile
 ├── app.py
 ├── requirements.txt
-├── .dockerignore
 └── docs/            # 검증 스크린샷
 ```
 
@@ -61,7 +62,7 @@ app = Flask(__name__)
 @app.route('/')
 def hello():
     return '''
-    <h1>🐳 Docker 웹서버</h1>
+    <h1>🐳 Docker 웹서버🎉 (바인드 마운트 성공!) x</h1>
     <p>안녕하세요! Flask 서버가 실행 중입니다.</p>
     '''
 
@@ -73,17 +74,30 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
 ```
 
+- 5-5 바인드 마운트 실험에서 바꾼 `<h1>` 문구가 지금 파일에 그대로 남아 있습니다. 실험 전 원본은 `<h1>🐳 Docker 웹서버</h1>`였습니다.
 - `host='0.0.0.0'`: 컨테이너 밖에서도 접속할 수 있게 모든 인터페이스에서 요청을 받습니다.
 - `debug=True`: 개발용 설정입니다. 파일을 수정하면 자동으로 다시 로드됩니다. 운영 환경에서는 사용하지 않습니다.
 
 ### Dockerfile
 
 ```dockerfile
+# 1단계: Python 기본 이미지 사용
 FROM python:3.11-slim
+
+# 2단계: 컨테이너 내 작업 디렉토리 설정
 WORKDIR /app
+
+# 3단계: 호스트의 파일을 컨테이너로 복사
 COPY requirements.txt .
 COPY app.py .
+
+# 4단계: 의존성 설치
 RUN pip install --no-cache-dir -r requirements.txt
+
+# 5단계: 포트 5000 노출 (문서화 목적)
+EXPOSE 5000
+
+# 6단계: 웹서버 실행
 CMD ["python", "app.py"]
 ```
 
@@ -471,7 +485,7 @@ af04ab0c5aeb   ubuntu             "bash"            About an hour ago   Exited (
 
 ### 7-1. 절대 경로와 상대 경로
 
-- **절대 경로**는 루트(`/`)부터 시작하는 전체 경로입니다. 현재 위치와 상관없이 항상 같은 파일을 가리킵니다. 예: `/home/samsung/app/app.py`, `~/app/app.py`
+- **절대 경로**는 루트(`/`)부터 시작하는 전체 경로입니다. 현재 위치와 상관없이 항상 같은 파일을 가리킵니다. 예: `/home/user/app/app.py`, `~/app/app.py`
 - **상대 경로**는 현재 위치를 기준으로 한 경로입니다. 예: 현재 위치가 `~/app`이면 `./app.py` 또는 `app.py`, 상위 폴더는 `../`
 - 실습에서 `cat ~/app/app.py`는 절대 경로 방식이고, `~/app`에서 `docker build -t my-flask-app:1.0 .`의 `.`은 현재 폴더를 뜻하는 상대 경로입니다.
 
